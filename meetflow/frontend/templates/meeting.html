@@ -1,0 +1,619 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Meeting Room — MeetFlow{% endblock %}
+{% block bodyclass %}meeting-body{% endblock %}
+
+{% block body %}
+
+<!-- External CSS only -->
+<link rel="stylesheet" href="{% static 'css/meeting.css' %}?v=3">
+
+<div class="meeting-app">
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="meeting-header">
+        <div class="d-flex align-items-center gap-3 meeting-header-left">
+            <a href="/dashboard/" class="meeting-brand text-decoration-none">
+                <i class="bi bi-camera-video-fill"></i>
+                MeetFlow
+            </a>
+
+            <span class="meeting-header-divider"></span>
+
+            <div class="meeting-room-info">
+                <div class="fw-semibold" id="meetingName">
+                    Meeting Room
+                </div>
+                <small class="text-secondary">
+                    Code:
+                    <span id="meetingCodeText">{{ room_code }}</span>
+                </small>
+            </div>
+        </div>
+
+        <div class="meeting-header-actions">
+            <span id="connectionStatus"
+                  class="badge text-bg-secondary"
+                  role="status"
+                  aria-live="polite">
+                Connecting...
+            </span>
+
+            <div id="hostMeetingControls" class="d-none gap-2">
+                <button id="chatControlBtn"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        title="Disable chat for everyone"
+                        aria-pressed="true">
+                    <i class="bi bi-chat-slash"></i>
+                    <span class="d-none d-lg-inline">Disable chat</span>
+                </button>
+
+                <button id="meetingLockBtn"
+                        type="button"
+                        class="btn btn-outline-warning btn-sm"
+                        title="Lock or unlock meeting">
+                    <i class="bi bi-lock"></i>
+                    <span class="d-none d-lg-inline">Lock meeting</span>
+                </button>
+
+                <button id="meetingEndBtn"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        title="End meeting for everyone">
+                    <i class="bi bi-stop-circle"></i>
+                    <span class="d-none d-lg-inline">End for everyone</span>
+                </button>
+            </div>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm meeting-theme-btn"
+                    data-theme-toggle
+                    title="Toggle theme"
+                    aria-label="Toggle light and dark mode">
+                <i class="bi bi-moon-stars-fill"></i>
+            </button>
+
+            <button id="copyMeetingLink"
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    title="Copy meeting link">
+                <i class="bi bi-link-45deg"></i>
+                <span class="d-none d-md-inline">Copy Link</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= AI SUMMARY ================= -->
+
+    <div id="aiSummaryPanel"
+         class="alert alert-info m-3 d-none mf-ai-summary"
+         role="status">
+    </div>
+
+    <!-- ================= RECORDING PANEL ================= -->
+
+    <section id="mfRecordingPanel"
+             class="mf-rec-panel"
+             aria-label="Meeting recording"
+             hidden>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>
+                <i class="bi bi-record-circle me-2"></i>
+                Meeting recording
+            </strong>
+
+            <span id="mfRecLive" class="mf-rec-pill" hidden>
+                <span class="mf-rec-dot"></span>
+                REC
+                <span id="mfRecTimer">00:00</span>
+            </span>
+        </div>
+
+        <p id="mfRecStatus"
+           class="mf-rec-info mb-2"
+           role="status"
+           aria-live="polite">
+            Checking recording status...
+        </p>
+
+        <div id="mfRecConsent" class="mb-3" hidden>
+            <p class="small mb-2">
+                The host requests permission to record this
+                meeting, including audio and video.
+            </p>
+
+            <div class="d-flex gap-2">
+                <button id="mfRecAccept"
+                        type="button"
+                        class="btn btn-success btn-sm">
+                    Accept
+                </button>
+
+                <button id="mfRecDecline"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm">
+                    Decline
+                </button>
+            </div>
+        </div>
+
+        <div class="mf-rec-actions">
+            <button id="mfRecRequest"
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    hidden>
+                Request recording consent
+            </button>
+
+            <button id="mfRecStart"
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    hidden>
+                <i class="bi bi-record-fill"></i>
+                Start recording
+            </button>
+
+            <button id="mfRecStop"
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    hidden>
+                <i class="bi bi-stop-fill"></i>
+                Stop recording
+            </button>
+
+            <button id="mfRecCancel"
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    hidden>
+                Cancel consent request
+            </button>
+
+            <button id="mfRecHistoryButton"
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    hidden>
+                <i class="bi bi-clock-history"></i>
+                Recording history
+            </button>
+        </div>
+
+        <div id="mfRecHistory"
+             class="mf-rec-history mt-3"
+             hidden>
+        </div>
+    </section>
+
+    <!-- ================= MAIN MEETING ================= -->
+
+    <div class="meeting-layout">
+
+        <main class="video-area">
+
+            <div id="chatBubbleOverlay"
+                 class="chat-bubble-overlay"
+                 aria-live="polite"
+                 aria-label="Meeting chat messages"
+                 hidden>
+            </div>
+
+            <!-- LARGE SCREEN SHARING PRESENTATION -->
+
+            <section id="mfPresentation"
+                     class="mf-presentation"
+                     hidden
+                     aria-label="Shared screen">
+
+                <div class="mf-presentation-header">
+                    <span id="mfPresentationName">
+                        Screen presentation
+                    </span>
+
+                    <button type="button"
+                            id="mfPresentationPin"
+                            class="mf-presentation-pin"
+                            aria-pressed="true">
+                        Unpin
+                    </button>
+                </div>
+
+                <div id="mfPresentationMedia"
+                     class="mf-presentation-media">
+                </div>
+            </section>
+
+            <!-- VIDEO GRID -->
+
+            <div id="videoGrid" class="video-grid">
+
+                <!-- LOCAL PARTICIPANT -->
+
+                <div class="video-tile local-video-tile"
+                     id="localVideoTile">
+
+                    <div id="localVideoContainer"
+                         class="video-content">
+
+                        <video id="localVideo"
+                               autoplay
+                               muted
+                               playsinline
+                               hidden>
+                        </video>
+
+                        <div id="localAvatar"
+                             class="participant-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+
+                    <div class="video-tile-footer">
+                        <span id="localParticipantName">
+                            You
+                        </span>
+
+                        <span id="localMicIndicator">
+                            <i class="bi bi-mic-mute-fill"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- REMOTE PARTICIPANTS -->
+
+                <div id="remoteVideos"
+                     class="remote-videos">
+                </div>
+            </div>
+
+            <!-- WAITING FOR PARTICIPANTS -->
+
+            <div id="waitingMessage"
+                 class="meeting-waiting">
+
+                <i class="bi bi-people fs-1"></i>
+
+                <h5 class="mt-3">
+                    Waiting for participants
+                </h5>
+
+                <p>
+                    Share the meeting link to invite others.
+                </p>
+            </div>
+
+        </main>
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside id="meetingSidebar"
+               class="meeting-sidebar d-none">
+
+            <div class="sidebar-header">
+                <h5 id="sidebarTitle" class="mb-0">
+                    Meeting Chat
+                </h5>
+
+                <button id="closeSidebar"
+                        type="button"
+                        class="btn btn-sm btn-light"
+                        aria-label="Close sidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- CHAT PANEL -->
+
+            <section id="chatPanel" class="sidebar-panel">
+                <div class="chat-display-toolbar">
+                    <button id="chatBubbleToggleBtn"
+                            type="button"
+                            class="btn btn-sm btn-outline-info"
+                            title="Show chat bubbles on your screen"
+                            aria-label="Show chat bubbles on your screen"
+                            aria-pressed="false">
+                        <i class="bi bi-chat-square-text"></i>
+                        <span>Show messages on screen</span>
+                    </button>
+                </div>
+
+                <div id="chatMessages"
+                     class="chat-messages"
+                     aria-live="polite">
+
+                    <div class="text-center text-secondary small py-3">
+                        Meeting messages will appear here.
+                    </div>
+                </div>
+
+                <div id="chatStatus"
+                     class="chat-status d-none"
+                     role="status">
+                    The host has disabled chat for everyone.
+                </div>
+
+                <form id="chatForm" class="chat-input-area">
+                    <input type="text"
+                           id="chatInput"
+                           class="form-control"
+                           placeholder="Type a message..."
+                           maxlength="2000"
+                           autocomplete="off"
+                           required>
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            aria-label="Send message">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </section>
+
+            <!-- PARTICIPANTS PANEL -->
+
+            <section id="participantsPanel"
+                     class="sidebar-panel d-none">
+
+                <div class="p-3">
+                    <h6 class="fw-semibold">
+                        Participants
+                        <span id="participantCount"
+                              class="badge text-bg-secondary">
+                            1
+                        </span>
+                    </h6>
+
+                    <div id="participantsList"
+                         class="participants-list">
+
+                        <div class="participant-item">
+                            <div class="participant-mini-avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <span>You</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <!-- ================= BOTTOM CONTROLS ================= -->
+
+    <footer class="meeting-controls">
+
+        <div class="meeting-time" id="meetingTimer">
+            00:00
+        </div>
+
+        <div class="controls-center">
+
+            <button id="micBtn"
+                    type="button"
+                    class="control-btn off"
+                    title="Toggle microphone"
+                    aria-label="Toggle microphone"
+                    aria-pressed="false"
+                    disabled>
+                <i class="bi bi-mic-mute-fill"></i>
+            </button>
+
+            <button id="cameraBtn"
+                    type="button"
+                    class="control-btn off"
+                    title="Toggle camera"
+                    aria-label="Toggle camera"
+                    aria-pressed="false"
+                    disabled>
+                <i class="bi bi-camera-video-off-fill"></i>
+            </button>
+
+            <button id="screenShareBtn"
+                    type="button"
+                    class="control-btn off"
+                    title="Share screen"
+                    aria-label="Share screen"
+                    aria-pressed="false"
+                    disabled>
+                <i class="bi bi-display"></i>
+            </button>
+
+            <button id="participantsBtn"
+                    type="button"
+                    class="control-btn"
+                    title="Participants"
+                    aria-label="Show participants">
+                <i class="bi bi-people-fill"></i>
+            </button>
+
+            <button id="chatBtn"
+                    type="button"
+                    class="control-btn"
+                    title="Meeting chat"
+                    aria-label="Show meeting chat">
+                <i class="bi bi-chat-dots-fill"></i>
+                <span id="chatUnreadCount"
+                      class="chat-unread-badge d-none"
+                      aria-hidden="true"></span>
+            </button>
+
+            <button id="leaveMeetingBtn"
+                    type="button"
+                    class="control-btn control-danger"
+                    title="Leave meeting"
+                    aria-label="Leave meeting">
+                <i class="bi bi-telephone-fill"></i>
+            </button>
+        </div>
+
+        <!-- EXTRA CONTROLS -->
+
+        <div class="meeting-extra">
+
+            <button id="aiSummaryBtn"
+                    type="button"
+                    class="btn btn-sm btn-outline-info d-none"
+                    title="Summarize saved meeting chat">
+                <i class="bi bi-stars"></i>
+                AI summary
+            </button>
+
+            <button id="downloadChatBtn"
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Download meeting chat">
+                <i class="bi bi-download"></i>
+                Chat
+            </button>
+
+            <button id="recordScreenBtn"
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Record selected screen or tab locally">
+                <i class="bi bi-record-circle"></i>
+                Record screen
+            </button>
+
+            <button id="fullscreenBtn"
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+
+            <button id="copyCodeBtn"
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Copy meeting code">
+                <i class="bi bi-clipboard"></i>
+                Copy Code
+            </button>
+        </div>
+    </footer>
+</div>
+
+<!-- ================= HOST MEDIA PERMISSION POPUP ================= -->
+
+<div id="hostMediaRequestModal"
+     class="mf-permission-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="mfRequestTitle"
+     aria-describedby="mfRequestMessage mfRequestNote"
+     hidden>
+
+    <div class="mf-permission-box">
+
+        <div id="mfRequestIcon"
+             class="mf-permission-icon"
+             aria-hidden="true">
+            🎤
+        </div>
+
+        <h3 id="mfRequestTitle">
+            Microphone Permission Request
+        </h3>
+
+        <p id="mfRequestMessage">
+            The meeting host is requesting permission
+            to turn on your microphone.
+        </p>
+
+        <p id="mfRequestNote"
+           class="mf-permission-note">
+            Your camera or microphone will only turn on
+            after you approve the request.
+            Your browser may also ask for device permission.
+            You can turn the device off again at any time.
+        </p>
+
+        <div class="mf-permission-actions">
+            <button type="button"
+                    id="mfDeclineRequest"
+                    class="mf-decline-btn">
+                Decline
+            </button>
+
+            <button type="button"
+                    id="mfAllowRequest"
+                    class="mf-allow-btn">
+                Allow &amp; Turn On
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= DJANGO ROOM CODE ================= -->
+
+{{ room_code|json_script:"room-code-data" }}
+
+<!-- ================= MODERATION ================= -->
+
+<section id="mfModeration"
+         class="container-fluid py-2 mf-moderation">
+
+    <details class="rounded p-3 mf-moderation-details">
+        <summary>
+            Meeting tools · Host controls · Raised hands
+        </summary>
+
+        <div class="d-flex gap-2 flex-wrap my-2">
+            <button id="mfRaiseHand"
+                    class="btn btn-outline-primary btn-sm"
+                    type="button">
+                ✋ Raise hand
+            </button>
+
+            <button id="mfLowerHand"
+                    class="btn btn-outline-secondary btn-sm"
+                    type="button">
+                Lower my hand
+            </button>
+
+            <button id="mfMuteAll"
+                    class="btn btn-outline-warning btn-sm d-none"
+                    type="button">
+                Request mute all
+            </button>
+
+            <button id="mfToggleLock"
+                    class="btn btn-outline-danger btn-sm d-none"
+                    type="button">
+                Lock meeting
+            </button>
+        </div>
+
+        <div id="mfModerationNotice"
+             role="status"
+             aria-live="polite">
+        </div>
+
+        <h6>Raised-hand queue</h6>
+        <div id="mfHandsQueue"></div>
+
+        <h6 class="mt-2">Participant roles</h6>
+        <div id="mfRoles"></div>
+    </details>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<!-- LIVEKIT SDK -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+
+<!-- MAIN MEETING JAVASCRIPT -->
+<script src="{% static 'js/meeting.js' %}"></script>
+
+<!-- RECORDING CONSENT / HISTORY -->
+<script src="{% static 'js/recording-ui.js' %}"></script>
+
+<!-- MODERATION -->
+<script src="{% static 'js/moderation-addon.js' %}"></script>
+
+{% endblock %}

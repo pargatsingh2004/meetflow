@@ -1,0 +1,71 @@
+{% extends 'management/base.html' %}
+{% block title %}Live monitoring | MeetFlow Admin{% endblock %}
+{% block heading %}Live meeting monitoring{% endblock %}
+{% block content %}
+<section class="panel" style="padding:24px">
+  <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">
+    <div><h2 class="h5 mb-1">Connected LiveKit rooms</h2><p class="text-secondary mb-0">Refreshes every 5 seconds while this page is visible. Data is from LiveKit, not attendance history.</p></div>
+    <button class="btn btn-outline-primary" type="button" id="refresh">Refresh now</button>
+  </div>
+  <div class="d-flex flex-wrap gap-3 mb-3"><div class="border rounded p-3">Live rooms: <strong id="roomsCount">—</strong></div><div class="border rounded p-3">Connected participants: <strong id="peopleCount">—</strong></div><div class="border rounded p-3">Last refreshed: <strong id="lastRefresh">—</strong></div></div>
+  <div id="notice" class="alert alert-info" role="status">Connecting to LiveKit…</div>
+  <div id="rooms" aria-live="polite"></div>
+</section>
+<script>
+(() => {
+ const dataUrl = '{% url "management_live_data" %}';
+ const endUrl = '{% url "management_live_end" code="ROOMCODE" %}';
+ const removeUrl = '{% url "management_live_remove" code="ROOMCODE" %}';
+ const notice = document.getElementById('notice');
+ const roomsNode = document.getElementById('rooms');
+ let loading = false;
+ function el(tag, className, text) { const n=document.createElement(tag); if(className)n.className=className; if(text!==undefined)n.textContent=text; return n; }
+ function cookie(name) { return document.cookie.split('; ').find(s=>s.startsWith(name+'='))?.split('=').slice(1).join('=') || ''; }
+ function actionButton(label, danger, handler) {const b=el('button', danger?'btn btn-sm btn-outline-danger':'btn btn-sm btn-outline-secondary',label); b.type='button';b.addEventListener('click',handler);return b;}
+ async function perform(url, data, question) {
+   if(!confirm(question))return;
+   try {
+     const body=new URLSearchParams(data);
+     const res=await fetch(url,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':decodeURIComponent(cookie('csrftoken')),'Content-Type':'application/x-www-form-urlencoded'},body});
+     const payload=await res.json();
+     if(!res.ok)throw new Error(payload.error || 'Action failed');
+     await refresh();
+   } catch(err) {notice.hidden=false;notice.className='alert alert-danger';notice.textContent=err.message;}
+ }
+ async function refresh() {
+   if(loading || document.hidden)return;
+   loading=true;
+   try {
+     const res=await fetch(dataUrl,{credentials:'same-origin',cache:'no-store'});
+     const payload=await res.json();
+     if(!res.ok)throw new Error(payload.error || 'Unable to retrieve rooms');
+     document.getElementById('roomsCount').textContent=payload.total_rooms;
+     document.getElementById('peopleCount').textContent=payload.total_participants;
+     document.getElementById('lastRefresh').textContent=new Date().toLocaleTimeString();
+     roomsNode.replaceChildren();
+     if(!payload.rooms.length){roomsNode.append(el('p','text-secondary','No active MeetFlow rooms are connected right now.'));}
+     for(const room of payload.rooms){
+       const card=el('div','border rounded p-3 mb-3');
+       const head=el('div','d-flex flex-wrap justify-content-between gap-2 mb-2');
+       const title=el('div');title.append(el('h3','h6 mb-1',room.title+' ('+room.code+')'),el('div','small text-secondary','Host: '+room.host+' · '+room.participant_count+' connected'));
+       head.append(title,actionButton('End meeting for everyone',true,()=>perform(endUrl.replace('ROOMCODE',encodeURIComponent(room.code)),{},'End this meeting for everyone? This disconnects all participants and prevents rejoining.')));
+       card.append(head);
+       if(!room.participants.length)card.append(el('p','text-secondary','No connected participants.'));
+       for(const person of room.participants){
+         const row=el('div','d-flex flex-wrap justify-content-between align-items-center gap-2 border-top py-2');
+         row.append(el('div','',person.name+(person.email?' · '+person.email:'')+(person.is_host?' (host)':'')));
+         if(!person.is_host)row.append(actionButton('Remove',true,()=>perform(removeUrl.replace('ROOMCODE',encodeURIComponent(room.code)),{identity:person.identity},'Remove '+person.name+' from this meeting and block rejoining?')));
+         card.append(row);
+       }
+       roomsNode.append(card);
+     }
+     notice.hidden=true;
+   } catch(err){notice.hidden=false;notice.className='alert alert-warning';notice.textContent=err.message;}
+   finally {loading=false;}
+ }
+ document.getElementById('refresh').addEventListener('click',refresh);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+ refresh();setInterval(refresh,5000);
+})();
+</script>
+{% endblock %}

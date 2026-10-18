@@ -1,0 +1,207 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Account — MeetFlow{% endblock %}
+{% block bodyclass %}mf-auth-body{% endblock %}
+
+{% block body %}
+
+<main class="mf-auth-layout">
+
+    <section class="mf-auth-showcase">
+
+        <a href="/" class="mf-auth-brand">
+            <span class="mf-auth-brand-icon">
+                <i class="bi bi-camera-video-fill"></i>
+            </span>
+            MeetFlow
+        </a>
+
+        <div class="mf-auth-showcase-content">
+            <div class="mf-auth-eyebrow">
+                <i class="bi bi-stars"></i>
+                GET STARTED WITH MEETFLOW
+            </div>
+
+            <h1>
+                Your next great<br>
+                conversation starts here.
+            </h1>
+
+            <p>
+                Create your account and enjoy seamless
+                video meetings with your team, classmates
+                and colleagues.
+            </p>
+
+            <div class="mf-auth-feature-list">
+                <div>
+                    <i class="bi bi-check-circle"></i>
+                    Create instant meetings
+                </div>
+                <div>
+                    <i class="bi bi-calendar-event"></i>
+                    Schedule meetings
+                </div>
+                <div>
+                    <i class="bi bi-people"></i>
+                    Collaborate with others
+                </div>
+                <div>
+                    <i class="bi bi-shield-check"></i>
+                    Email verification
+                </div>
+            </div>
+        </div>
+
+        <div class="mf-auth-showcase-footer">
+            MeetFlow — Better meetings begin here.
+        </div>
+
+    </section>
+
+    <section class="mf-auth-form-section">
+
+        <div class="mf-auth-form-container">
+
+            <div class="mf-auth-mobile-brand">
+                <i class="bi bi-camera-video-fill"></i>
+                MeetFlow
+            </div>
+
+            <div class="mf-auth-heading">
+                <span class="mf-auth-welcome">
+                    JOIN MEETFLOW
+                </span>
+
+                <h2>Create your account</h2>
+
+                <p>
+                    Fill in your details to get started.
+                </p>
+            </div>
+
+            <form id="signupForm" class="mf-auth-form">
+
+                <div class="mb-3">
+                    <label for="signupName" class="form-label">
+                        Full name
+                    </label>
+
+                    <div class="mf-input-wrap">
+                        <i class="bi bi-person"></i>
+
+                        <input
+                            type="text"
+                            id="signupName"
+                            name="full_name"
+                            class="form-control"
+                            placeholder="Enter your full name"
+                            autocomplete="name"
+                            maxlength="150"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupEmail" class="form-label">
+                        Email address
+                    </label>
+
+                    <div class="mf-input-wrap">
+                        <i class="bi bi-envelope"></i>
+
+                        <input
+                            type="email"
+                            id="signupEmail"
+                            name="email"
+                            class="form-control"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupPassword" class="form-label">
+                        Password
+                    </label>
+
+                    <div class="mf-input-wrap">
+                        <i class="bi bi-lock"></i>
+
+                        <input
+                            type="password"
+                            id="signupPassword"
+                            name="password"
+                            class="form-control mf-password-input"
+                            placeholder="Create a strong password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+
+                        <button
+                            type="button"
+                            class="mf-password-toggle"
+                            data-password-toggle="signupPassword"
+                            aria-label="Show password"
+                            aria-pressed="false">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="mf-password-strength mt-2">
+                        <div class="mf-password-strength-track">
+                            <span id="passwordStrengthBar"></span>
+                        </div>
+                        <small id="passwordStrengthText"
+                               class="text-secondary">
+                            Use at least 8 characters.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="mf-auth-note">
+                    <i class="bi bi-envelope-check"></i>
+                    <span>
+                        We'll send a verification code to
+                        your email after signup.
+                    </span>
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary mf-auth-submit w-100 mt-3">
+                    Create account
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <div class="form-status mt-3"
+                     role="alert"
+                     aria-live="polite"></div>
+
+            </form>
+
+            <div class="mf-auth-switch">
+                Already have an account?
+                <a href="/login/">Sign in</a>
+            </div>
+
+            <div class="mf-auth-bottom">
+                &copy; {% now "Y" %} MeetFlow.
+                All rights reserved.
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/auth.js' %}"></script>
+<script src="{% static 'js/auth-ui.js' %}"></script>
+{% endblock %}

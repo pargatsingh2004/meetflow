@@ -1,0 +1,190 @@
+
+{% extends "base.html" %}
+
+{% block title %}MeetFlow — Video Meetings{% endblock %}
+
+{% block body %}
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container py-2">
+
+        <a class="navbar-brand fw-bold fs-3" href="/">
+            <i class="bi bi-camera-video-fill text-primary"></i>
+            Meet<span class="text-primary">Flow</span>
+        </a>
+
+        <div class="d-flex gap-2">
+            <a href="/login/" class="btn btn-outline-primary">
+                Login
+            </a>
+
+            <a href="/signup/" class="btn btn-primary">
+                Signup
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<section class="container py-5">
+
+    <div class="row align-items-center min-vh-75">
+
+        <div class="col-lg-6">
+
+            <span class="badge bg-primary-subtle text-primary mb-3">
+                Modern Video Conferencing
+            </span>
+
+            <h1 class="display-3 fw-bold mb-4">
+                Connect Anywhere.
+                <span class="text-primary">
+                    Meet Anytime.
+                </span>
+            </h1>
+
+            <p class="lead text-secondary mb-4">
+                Bring your team together with secure video
+                meetings, screen sharing, instant messaging,
+                and seamless collaboration.
+            </p>
+
+            <div class="d-flex gap-3 flex-wrap">
+
+                <a href="/signup/"
+                   class="btn btn-primary btn-lg">
+
+                    <i class="bi bi-camera-video me-2"></i>
+                    Start Meeting
+
+                </a>
+
+                <a href="/login/"
+                   class="btn btn-outline-dark btn-lg">
+
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Join Meeting
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-6 mt-5 mt-lg-0">
+
+            <div class="hero-meeting-card">
+
+                <div class="row g-3">
+
+                    <div class="col-6">
+                        <div class="demo-user">
+                            <div class="demo-avatar">👨‍💻</div>
+                            <span>Alex</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="demo-user">
+                            <div class="demo-avatar">👩‍💼</div>
+                            <span>Sarah</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="demo-user">
+                            <div class="demo-avatar">👨‍🎓</div>
+                            <span>John</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="demo-user">
+                            <div class="demo-avatar">🙋</div>
+                            <span>You</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-center mt-4">
+                    <span class="meeting-demo-control">
+                        <i class="bi bi-mic-fill"></i>
+                    </span>
+
+                    <span class="meeting-demo-control">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </span>
+
+                    <span class="meeting-demo-control">
+                        <i class="bi bi-display"></i>
+                    </span>
+
+                    <span class="meeting-demo-control bg-danger">
+                        <i class="bi bi-telephone-fill"></i>
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="container py-5">
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Everything you need to connect</h2>
+        <p class="text-secondary">
+            Powerful collaboration tools in one place.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <i class="bi bi-camera-video-fill"></i>
+                <h4>Video Meetings</h4>
+                <p>
+                    Connect with your team using
+                    real-time video and audio.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <i class="bi bi-display"></i>
+                <h4>Screen Sharing</h4>
+                <p>
+                    Share presentations, applications,
+                    and your screen.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <i class="bi bi-chat-dots-fill"></i>
+                <h4>Live Chat</h4>
+                <p>
+                    Send messages while collaborating
+                    with meeting participants.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<footer class="text-center py-4 border-top">
+    <p class="text-secondary mb-0">
+        © MeetFlow — Connect.  Create-Pargat singh.
+    </p>
+</footer>
+
+{% endblock %}

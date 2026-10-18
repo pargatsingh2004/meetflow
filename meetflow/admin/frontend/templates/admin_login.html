@@ -1,0 +1,109 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Admin Login — MeetFlow{% endblock %}
+{% block bodyclass %}mf-auth-body mf-admin-auth-body{% endblock %}
+
+{% block body %}
+<main class="mf-admin-login-layout">
+
+    <section class="mf-admin-login-card">
+
+        <div class="mf-admin-login-heading">
+            <div class="mf-admin-login-icon">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <h1>Admin Portal</h1>
+
+            <p>
+                Sign in with your administrator credentials
+                to manage MeetFlow.
+            </p>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger" role="alert">
+            Invalid credentials. Please try again.
+        </div>
+        {% endif %}
+
+        {% if next and user.is_authenticated and not user.is_staff %}
+        <div class="alert alert-warning" role="alert">
+            Your account does not have administrator access.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'admin:login' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="adminUsername" class="form-label">
+                    Username or email
+                </label>
+
+                <div class="mf-admin-input-wrap">
+                    <i class="bi bi-person"></i>
+
+                    <input
+                        type="text"
+                        id="adminUsername"
+                        name="username"
+                        class="form-control"
+                        autocomplete="username"
+                        required
+                        autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="adminPassword" class="form-label">
+                    Password
+                </label>
+
+                <div class="mf-admin-input-wrap">
+                    <i class="bi bi-lock"></i>
+
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        name="password"
+                        class="form-control"
+                        autocomplete="current-password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="mf-admin-password-toggle"
+                        data-password-toggle="adminPassword"
+                        aria-label="Show password"
+                        aria-pressed="false">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+            <button type="submit" class="btn btn-primary w-100 mf-admin-submit">
+                <i class="bi bi-box-arrow-in-right me-2"></i>
+                Sign in as administrator
+            </button>
+        </form>
+
+        <div class="mf-admin-login-footer">
+            <a href="/login/">
+                <i class="bi bi-arrow-left"></i>
+                Back to user login
+            </a>
+        </div>
+
+    </section>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/auth-ui.js' %}"></script>
+{% endblock %}

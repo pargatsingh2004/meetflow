@@ -1,0 +1,16 @@
+/* MeetFlow typography and contrast refinements.
+   Intentionally does not change theme backgrounds, primary colors, or layout. */
+:root { --mf-readable: #172033; --mf-readable-muted: #475569; }
+html[data-theme="dark"] { --mf-readable: #f1f5f9; --mf-readable-muted: #cbd5e1; }
+body { font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: var(--mf-readable); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+h1,h2,h3,h4,h5,h6 { font-weight: 700; line-height: 1.25; letter-spacing: -.018em; }
+p,li,td,th,label,input,textarea,select,button { line-height: 1.5; }
+small,.small,.text-muted,.text-secondary,.mf-muted,.subtle,.form-text,.card-text { color: var(--mf-readable-muted) !important; }
+.form-label, label { font-weight: 600; }
+input,textarea,select,.form-control,.form-select { font: inherit; }
+input::placeholder,textarea::placeholder { opacity: 1; color: #64748b; }
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] textarea::placeholder { color: #cbd5e1; }
+html[data-theme="dark"] .text-dark { color: #f1f5f9 !important; }
+html[data-theme="dark"] .text-muted,html[data-theme="dark"] .text-secondary { color: #cbd5e1 !important; }
+/* Do not override text on colored buttons, badges, dark panels or video tiles. */
+:where(a,button,input,textarea,select):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

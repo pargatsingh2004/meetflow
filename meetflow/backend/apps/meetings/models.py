@@ -1,0 +1,132 @@
+import secrets
+import string
+
+from django.conf import settings
+from django.db import models
+
+from .recording_models import RecordingRequest, RecordingConsent
+
+
+
+def generate_code():
+    letters = string.ascii_lowercase
+    return "-".join("".join(secrets.choice(letters) for _ in range(n)) for n in (3, 4, 3))
+
+
+class Meeting(models.Model):
+    code = models.CharField(max_length=20, unique=True, db_index=True, editable=False)
+    title = models.CharField(max_length=150, default="Meeting")
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="hosted_meetings")
+    scheduled_for = models.DateTimeField(null=True, blank=True)
+    duration_minutes = models.PositiveIntegerField(default=60)
+    recurrence = models.CharField(max_length=10, choices=[("none", "None"), ("daily", "Daily"), ("weekly", "Weekly")], default="none")
+    series_id = models.UUIDField(null=True, blank=True, db_index=True)
+    is_locked = models.BooleanField(default=False)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            code = generate_code()
+            while Meeting.objects.filter(code=code).exists():
+                code = generate_code()
+            self.code = code
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.title} ({self.code})"
+
+
+class Participant(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="participants")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="participations")
+    role = models.CharField(max_length=10, choices=[("attendee", "Attendee"), ("cohost", "Co-host")], default="attendee")
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("meeting", "user")
+
+
+class Message(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="messages")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages")
+    text = models.TextField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
+class AdmissionRequest(models.Model):
+    STATUS_CHOICES = [("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("removed", "Removed")]
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="admission_requests")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="pending")
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["meeting", "user"], name="unique_meeting_admission")]
+
+
+class MeetingSummary(models.Model):
+    meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE, related_name="ai_summary")
+    content = models.TextField()
+    source_message_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Summary for {self.meeting.code}"
+
+
+class MeetingRecording(models.Model):
+    meeting = models.ForeignKey(
+        Meeting,
+        on_delete=models.CASCADE,
+        related_name="recordings"
+    )
+
+    egress_id = models.CharField(
+        max_length=180,
+        unique=True
+    )
+
+    status = models.CharField(
+        max_length=30,
+        default="starting"
+    )
+
+    storage_key = models.CharField(
+        max_length=500,
+        blank=True
+    )
+
+    started_at = models.DateTimeField(auto_now_add=True)
+
+    stopped_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    consent_confirmed_by_host = models.BooleanField(
+        default=False
+    )
+
+class MeetingInvitation(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="invitations")
+    email = models.EmailField()
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["meeting", "email"], name="unique_meeting_invitee")]
+
+
+class RaisedHand(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name="raised_hands")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    raised_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["meeting", "user"], name="unique_meeting_raised_hand")]
+        ordering = ["raised_at", "id"]

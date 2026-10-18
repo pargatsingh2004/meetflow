@@ -1,0 +1,300 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — MeetFlow{% endblock %}
+{% block bodyclass %}dashboard-body{% endblock %}
+
+{% block body %}
+
+<div class="mf-dashboard">
+
+    <!-- NAVIGATION -->
+    <header class="mf-dashboard-header">
+        <div class="mf-dashboard-header-inner">
+
+            <a href="/dashboard/" class="mf-dashboard-brand">
+                <span class="mf-brand-icon">
+                    <i class="bi bi-camera-video-fill"></i>
+                </span>
+                <span>MeetFlow</span>
+            </a>
+
+            <div class="mf-dashboard-nav-actions">
+
+                <span class="mf-workspace-label">
+                    <i class="bi bi-grid-1x2 me-1"></i>
+                    Workspace
+                </span>
+
+                <button
+                    type="button"
+                    class="mf-dashboard-theme"
+                    data-theme-toggle
+                    aria-label="Toggle light and dark theme"
+                    aria-pressed="false">
+                    <i class="bi bi-moon-stars-fill"></i>
+                    <span class="mf-theme-label">Dark mode</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="d-none d-sm-inline ms-1">Logout</span>
+                </button>
+
+            </div>
+
+        </div>
+    </header>
+
+    <main class="mf-dashboard-main">
+
+        <!-- WELCOME -->
+        <section class="mf-welcome">
+            <div>
+                <span class="mf-eyebrow">
+                    <i class="bi bi-stars me-1"></i>
+                    YOUR MEETING WORKSPACE
+                </span>
+
+                <h1>
+                    Welcome back,
+                    <span id="userName">User</span>!
+                </h1>
+
+                <p>
+                    Connect with your team, schedule conversations,
+                    and manage your meetings in one place.
+                </p>
+            </div>
+
+            <div class="mf-welcome-illustration" aria-hidden="true">
+                <i class="bi bi-camera-video-fill"></i>
+            </div>
+        </section>
+
+        <!-- MEETING ACTIONS -->
+        <section class="mf-dashboard-actions">
+
+            <!-- CREATE MEETING -->
+            <article class="mf-action-card">
+
+                <div class="mf-action-icon mf-action-icon-primary">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+
+                <h2>Create a meeting</h2>
+
+                <p class="mf-action-description">
+                    Start an instant video call or schedule a meeting
+                    for later.
+                </p>
+
+                <form id="createMeetingForm">
+
+                    <div class="mb-3">
+                        <label
+                            for="meetingTitle"
+                            class="form-label fw-semibold">
+                            Meeting title
+                        </label>
+
+                        <input
+                            type="text"
+                            id="meetingTitle"
+                            name="title"
+                            class="form-control form-control-lg"
+                            placeholder="e.g. Weekly team discussion"
+                            maxlength="150"
+                            required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label
+                            for="meetingScheduled"
+                            class="form-label fw-semibold">
+                            Schedule for
+                            <span class="mf-optional">(optional)</span>
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="meetingScheduled"
+                            class="form-control form-control-lg">
+
+                        <div class="form-text">
+                            Leave empty to start immediately.
+                        </div>
+                    </div>
+
+                    <div class="mb-3"><label for="meetingDuration" class="form-label">Duration (minutes)</label>
+                        <input type="number" id="meetingDuration" class="form-control" min="15" max="480" value="60"></div>
+                    <div class="mb-3"><label for="meetingRecurrence" class="form-label">Repeat</label>
+                        <select id="meetingRecurrence" class="form-select"><option value="none">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select></div>
+                    <div class="mb-3"><label for="meetingOccurrences" class="form-label">Number of meetings (up to 52)</label>
+                        <input type="number" id="meetingOccurrences" class="form-control" min="1" max="52" value="4"></div>
+                    <div class="mb-3"><label for="meetingInvitees" class="form-label">Email invitations (comma-separated)</label>
+                        <textarea id="meetingInvitees" class="form-control" rows="2" placeholder="colleague@example.com"></textarea></div>
+                    <button
+                        type="submit"
+                        id="createMeetingBtn"
+                        class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-camera-video me-2"></i>
+                        Create meeting
+                    </button>
+
+                </form>
+
+            </article>
+
+            <!-- JOIN MEETING -->
+            <article class="mf-action-card">
+
+                <div class="mf-action-icon mf-action-icon-success">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+
+                <h2>Join a meeting</h2>
+
+                <p class="mf-action-description">
+                    Have a meeting invitation? Enter its code
+                    to join the conversation.
+                </p>
+
+                <form id="joinMeetingForm" novalidate>
+
+                    <div class="mb-4">
+                        <label
+                            for="meetingCode"
+                            class="form-label fw-semibold">
+                            Meeting code
+                        </label>
+
+                        <input
+                            type="text"
+                            id="meetingCode"
+                            name="code"
+                            class="form-control form-control-lg"
+                            placeholder="Enter meeting code"
+                            autocomplete="off"
+                            aria-describedby="dashboardStatus">
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="joinMeetingBtn"
+                        class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Join meeting
+                    </button>
+
+                    <div
+                        id="dashboardStatus"
+                        class="mt-3 d-none"
+                        role="alert"
+                        aria-live="polite">
+                    </div>
+
+                </form>
+
+                <div class="mf-join-tip">
+                    <i class="bi bi-info-circle"></i>
+                    <span>
+                        Ask the meeting host for the meeting code
+                        if you haven't received one.
+                    </span>
+                </div>
+
+            </article>
+
+        </section>
+
+        <!-- RECENT MEETINGS -->
+        <section class="mf-recent-card">
+
+            <div class="mf-recent-header">
+                <div>
+                    <h2>Recent meetings</h2>
+                    <p>
+                        Access your previous and scheduled meetings.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="refreshMeetingsBtn"
+                    class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- LOADING -->
+            <div id="meetingsLoading" class="mf-state">
+                <div
+                    class="spinner-border text-primary"
+                    role="status">
+                    <span class="visually-hidden">
+                        Loading meetings...
+                    </span>
+                </div>
+
+                <p class="mt-3 mb-0">
+                    Loading your meetings...
+                </p>
+            </div>
+
+            <!-- EMPTY -->
+            <div id="meetingsEmpty" class="mf-state d-none">
+                <div class="mf-empty-icon">
+                    <i class="bi bi-calendar2-week"></i>
+                </div>
+
+                <h3>No meetings yet</h3>
+
+                <p>
+                    Create your first meeting to get started.
+                </p>
+            </div>
+
+            <!-- TABLE -->
+            <div
+                id="meetingsTable"
+                class="table-responsive d-none">
+
+                <table class="table table-hover align-middle mf-meetings-table">
+                    <thead>
+                        <tr>
+                            <th>Meeting title</th>
+                            <th>Meeting code</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="meetingsTableBody">
+                        <!-- Filled by dashboard.js -->
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+        <footer class="mf-dashboard-footer">
+            &copy; {% now "Y" %} MeetFlow.
+            Made for better meetings.
+        </footer>
+
+    </main>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}
