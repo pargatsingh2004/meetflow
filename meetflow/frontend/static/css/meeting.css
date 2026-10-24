@@ -502,6 +502,17 @@ html[data-theme="light"] .meeting-body .chat-display-toolbar {
     height: 240px;
 }
 
+/* Keep participant tiles centered and evenly sized beside an unpinned share. */
+.mf-presentation-unpinned + .video-grid {
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 220px), 280px)
+    );
+    justify-content: center;
+    align-content: center;
+    align-items: stretch;
+}
+
 .mf-grid-presenting {
     display: flex;
     flex-wrap: wrap;
